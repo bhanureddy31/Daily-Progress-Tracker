@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Daily Progress Tracker</title>
+
+    <meta name="description" content="Track your daily tasks, maintain streaks, and build consistency.">
+    <meta name="theme-color" content="#29345c">
+
+    <!-- Mobile & PWA Capabilities -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Daily Progress Tracker">
+
+    <!-- App Icons -->
+    <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>My Progress Tracker</h1>
+        <p>Track your daily tasks and build consistency.</p>
+    </header>
+
+    <main>
+
+        <section class="task-section">
+
+            <h2>My Daily Tasks</h2>
+
+            <div class="add-task">
+                <input
+                    type="text"
+                    id="taskInput"
+                    placeholder="Enter a new task..."
+                    autocomplete="off"
+                >
+
+                <button id="addTaskBtn">Add Task</button>
+            </div>
+
+            <div id="taskList">
+                <!-- Individual tasks appear here -->
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+
+</body>
+</html>

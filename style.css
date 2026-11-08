@@ -1,0 +1,513 @@
+/* ==============================
+   GENERAL RESET & BASE
+============================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f4f6fb;
+    color: #222;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: max(30px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(30px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* ==============================
+   HEADER
+============================== */
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 0 10px;
+}
+
+header h1 {
+    font-size: clamp(24px, 5vw, 32px);
+    color: #29345c;
+    margin-bottom: 8px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+header p {
+    color: #64748b;
+    font-size: clamp(14px, 3.5vw, 15px);
+    line-height: 1.4;
+}
+
+/* ==============================
+   MAIN CONTAINER
+============================== */
+
+main {
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* ==============================
+   TASK SECTION
+============================== */
+
+.task-section {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    width: 100%;
+}
+
+.task-section h2 {
+    margin-bottom: 20px;
+    color: #29345c;
+    font-size: clamp(18px, 4.5vw, 22px);
+    font-weight: 700;
+}
+
+/* ==============================
+   ADD TASK AREA
+============================== */
+
+.add-task {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 25px;
+    width: 100%;
+}
+
+.add-task input {
+    flex: 1;
+    min-width: 0;
+    min-height: 46px;
+    padding: 12px 16px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    outline: none;
+    font-size: 16px; /* Prevents auto-zoom on iOS Safari */
+    color: #1e293b;
+    background: #f8fafc;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.add-task input:focus {
+    border-color: #5264d8;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(82, 100, 216, 0.15);
+}
+
+.add-task button {
+    min-height: 46px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    background: #5264d8;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background 0.2s ease, transform 0.1s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.add-task button:hover {
+    background: #394bb8;
+}
+
+.add-task button:active {
+    transform: scale(0.98);
+}
+
+/* ==============================
+   INDIVIDUAL TASK CARD
+============================== */
+
+#taskList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+#taskList .task-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    width: 100%;
+    padding: 20px;
+    margin-bottom: 0;
+
+    background: #ffffff;
+    border: 1px solid #e8e8e8;
+    border-radius: 14px;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+#taskList .task-item:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.task-title {
+    width: 100%;
+    font-size: clamp(18px, 4.5vw, 20px);
+    color: #29345c;
+    font-weight: 700;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.35;
+}
+
+.task-start-date {
+    color: #888;
+    font-size: 13px;
+    margin: 0;
+}
+
+.task-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    color: #334155;
+    padding: 4px 0;
+    user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.task-check input {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #5264d8;
+}
+
+/* ==============================
+   DATE ACTIONS ROW
+============================== */
+
+.date-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.task-item input[type="date"] {
+    min-height: 40px;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #222;
+    background: #ffffff;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.task-item input[type="date"]:focus {
+    border-color: #5264d8;
+}
+
+/* ==============================
+   TASK STREAK
+============================== */
+
+.task-streak {
+    width: 100%;
+    color: #5264d8;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 3px 0;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+/* ==============================
+   TASK BUTTONS
+============================== */
+
+.task-item button {
+    min-height: 40px;
+    padding: 9px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s ease, transform 0.1s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.task-item button:active {
+    transform: scale(0.97);
+}
+
+.mark-date-btn {
+    background: #5264d8;
+    color: white;
+}
+
+.mark-date-btn:hover {
+    background: #394bb8;
+}
+
+.calendar-toggle {
+    background: #5264d8;
+    color: white;
+}
+
+.calendar-toggle:hover {
+    background: #394bb8;
+}
+
+.delete-task {
+    background: #fee2e2 !important;
+    color: #b91c1c !important;
+}
+
+.delete-task:hover {
+    background: #fecaca !important;
+}
+
+/* ==============================
+   INDIVIDUAL TASK CALENDAR
+============================== */
+
+.task-item .task-calendar {
+    width: 100%;
+    max-width: 380px;
+    padding: 16px;
+    margin: 6px 0;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.task-calendar[hidden] {
+    display: none !important;
+}
+
+/* Calendar header */
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.calendar-header strong {
+    font-size: clamp(15px, 4vw, 17px);
+    color: #29345c;
+    text-align: center;
+}
+
+.task-item .calendar-header button {
+    min-height: 36px;
+    min-width: 36px;
+    padding: 4px 10px;
+    background: #f0f1f5;
+    color: #29345c;
+    font-size: 20px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.task-item .calendar-header button:hover:not(:disabled) {
+    background: #e0e3ef;
+}
+
+.task-item .calendar-header button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+/* Calendar grid */
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+    text-align: center;
+    width: 100%;
+}
+
+.calendar-weekday {
+    padding: 6px 0;
+    color: #64748b;
+    font-size: clamp(10px, 2.7vw, 12px);
+    font-weight: 600;
+}
+
+.calendar-day,
+.calendar-empty {
+    min-width: 0;
+    min-height: 38px;
+    aspect-ratio: 1 / 1;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 8px;
+    font-size: clamp(11px, 2.8vw, 13px);
+    padding: 2px;
+}
+
+.calendar-day {
+    background: #f1f2f6;
+    color: #333;
+    user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.1s ease, background 0.15s ease;
+}
+
+/* Completed dates */
+
+.calendar-day.completed {
+    background: #bbf7d0;
+    color: #166534;
+    font-weight: bold;
+}
+
+/* Today's date */
+
+.calendar-day.today {
+    outline: 2px solid #5264d8;
+    outline-offset: 1px;
+}
+
+/* Dates before starting date and future dates */
+
+.calendar-day.calendar-disabled {
+    opacity: 0.35;
+    cursor: not-allowed !important;
+}
+
+/* Calendar starting date information */
+
+.calendar-start-info {
+    font-size: 12px;
+    color: #888;
+    margin-top: 14px;
+}
+
+/* ==============================
+   RESPONSIVE DESIGN (TABLETS & PHONES)
+============================== */
+
+@media (max-width: 600px) {
+
+    body {
+        padding: max(18px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    }
+
+    header {
+        margin-bottom: 22px;
+    }
+
+    .task-section {
+        padding: 18px 14px;
+        border-radius: 14px;
+    }
+
+    .add-task {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .add-task input {
+        width: 100%;
+    }
+
+    .add-task button {
+        width: 100%;
+        padding: 13px;
+    }
+
+    #taskList .task-item {
+        padding: 16px 14px;
+        gap: 12px;
+    }
+
+    .date-actions {
+        width: 100%;
+        gap: 8px;
+    }
+
+    .date-actions input[type="date"] {
+        flex: 1 1 130px;
+        width: auto;
+    }
+
+    .date-actions .mark-date-btn {
+        flex: 1 1 auto;
+    }
+
+    .task-item .task-calendar {
+        max-width: 100%;
+        padding: 12px 8px;
+    }
+
+    .calendar-grid {
+        gap: 4px;
+    }
+
+    .calendar-day,
+    .calendar-empty {
+        min-height: 34px;
+        font-size: clamp(10px, 3.2vw, 12px);
+    }
+}
+
+@media (max-width: 360px) {
+
+    .task-section {
+        padding: 14px 10px;
+    }
+
+    #taskList .task-item {
+        padding: 14px 10px;
+    }
+
+    .calendar-grid {
+        gap: 3px;
+    }
+
+    .calendar-day,
+    .calendar-empty {
+        min-height: 30px;
+        font-size: 10px;
+    }
+}
