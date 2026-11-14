@@ -126,6 +126,51 @@ main {
 }
 
 /* ==============================
+   BACKUP GUIDANCE (OFFLINE-FIRST)
+============================== */
+
+.backup-guidance {
+    margin: 4px 0 16px 0;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.backup-guidance-summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #4338ca;
+    user-select: none;
+    outline: none;
+}
+
+.backup-guidance-summary:hover {
+    color: #3730a3;
+    text-decoration: underline;
+}
+
+.backup-guidance-summary:focus-visible {
+    outline: 2px solid #4338ca;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.backup-guidance-body {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    line-height: 1.45;
+}
+
+.backup-guidance-body p {
+    margin: 0;
+}
+
+/* ==============================
    STATUS & ERROR NOTIFICATIONS
 ============================== */
 

@@ -1,6 +1,6 @@
 // Service Worker for Daily Progress Tracker
 const CACHE_PREFIX = 'daily-progress-tracker-';
-const CACHE_NAME = `${CACHE_PREFIX}v2`;
+const CACHE_NAME = `${CACHE_PREFIX}v3`;
 
 // Relative assets list - works on localhost, root domains, and GitHub Pages subpaths
 const PRECACHE_ASSETS = [

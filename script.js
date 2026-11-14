@@ -138,14 +138,8 @@ function validateTaskRecord(task, index = 0) {
         return { isValid: false, error: `Task at index ${index} must have a non-empty 'name'.` };
     }
 
-    let startDate = task.startDate;
-    if (!startDate || !isValidDateString(startDate)) {
-        if (Array.isArray(task.completedDates) && task.completedDates.length > 0) {
-            const sortedDates = [...task.completedDates].filter(isValidDateString).sort();
-            startDate = sortedDates.length ? sortedDates[0] : getToday();
-        } else {
-            startDate = getToday();
-        }
+    if (!task.startDate || typeof task.startDate !== "string" || !isValidDateString(task.startDate)) {
+        return { isValid: false, error: `Task at index ${index} is missing a valid 'startDate' (YYYY-MM-DD).` };
     }
 
     if (!Array.isArray(task.completedDates)) {
@@ -153,10 +147,11 @@ function validateTaskRecord(task, index = 0) {
     }
 
     for (let j = 0; j < task.completedDates.length; j++) {
-        if (!isValidDateString(task.completedDates[j])) {
+        const d = task.completedDates[j];
+        if (!isValidDateString(d)) {
             return {
                 isValid: false,
-                error: `Task "${task.name}" contains an invalid date format in completedDates: "${task.completedDates[j]}".`
+                error: `Task "${task.name}" contains an invalid date format in completedDates: "${d}".`
             };
         }
     }
@@ -168,7 +163,7 @@ function validateTaskRecord(task, index = 0) {
         task: {
             id: task.id,
             name: String(task.name).trim(),
-            startDate: startDate,
+            startDate: task.startDate,
             completedDates: sanitizedCompleted
         }
     };
@@ -180,16 +175,76 @@ function validateTasksArray(data) {
     }
 
     const validatedTasks = [];
+    const seenIds = new Set();
 
     for (let i = 0; i < data.length; i++) {
         const result = validateTaskRecord(data[i], i);
         if (!result.isValid) {
             return { isValid: false, error: result.error };
         }
+
+        const idKey = String(result.task.id);
+        if (seenIds.has(idKey)) {
+            return {
+                isValid: false,
+                error: `Duplicate task ID "${result.task.id}" found at index ${i}. All task IDs must be unique.`
+            };
+        }
+        seenIds.add(idKey);
+
         validatedTasks.push(result.task);
     }
 
     return { isValid: true, sanitized: validatedTasks };
+}
+
+function validateBackupDocument(parsed) {
+    if (!parsed || typeof parsed !== "object") {
+        return { isValid: false, error: "The backup file must contain a JSON object or task list." };
+    }
+
+    let incomingTasks = null;
+
+    if (!Array.isArray(parsed)) {
+        if (parsed.app !== undefined && parsed.app !== null) {
+            if (typeof parsed.app !== "string" || parsed.app.trim().toLowerCase() !== "daily progress tracker") {
+                return {
+                    isValid: false,
+                    error: `Incompatible application backup ("${parsed.app}"). Expected "Daily Progress Tracker".`
+                };
+            }
+        }
+
+        if (parsed.version !== undefined && parsed.version !== null) {
+            if (typeof parsed.version !== "number" || parsed.version !== 1) {
+                return {
+                    isValid: false,
+                    error: `Unsupported backup version (${parsed.version}). This application supports backup version 1.`
+                };
+            }
+        }
+
+        if (!Array.isArray(parsed.tasks)) {
+            return {
+                isValid: false,
+                error: "Incompatible backup format. Backup object must contain a 'tasks' array."
+            };
+        }
+
+        incomingTasks = parsed.tasks;
+    } else {
+        incomingTasks = parsed;
+    }
+
+    const tasksValidation = validateTasksArray(incomingTasks);
+    if (!tasksValidation.isValid) {
+        return { isValid: false, error: tasksValidation.error };
+    }
+
+    return {
+        isValid: true,
+        tasks: tasksValidation.sanitized
+    };
 }
 
 function loadTasksFromStorage() {
@@ -613,6 +668,7 @@ function renderCalendar(task, calendarContainer, monthDate, streakInfo, taskDiv)
 
             function toggleCompletion() {
                 const index = task.completedDates.indexOf(date);
+                const prevCompleted = [...task.completedDates];
 
                 if (index !== -1) {
                     task.completedDates.splice(index, 1);
@@ -620,7 +676,10 @@ function renderCalendar(task, calendarContainer, monthDate, streakInfo, taskDiv)
                     task.completedDates.push(date);
                 }
 
-                saveTasks();
+                const saved = saveTasks();
+                if (!saved) {
+                    task.completedDates = prevCompleted;
+                }
 
                 const current = calculateCurrentStreak(task.completedDates);
                 const maximum = calculateMaxStreak(task.completedDates);
@@ -703,6 +762,7 @@ function displayTasks() {
         checkbox.checked = task.completedDates.includes(today);
 
         checkbox.addEventListener("change", () => {
+            const prevCompleted = [...task.completedDates];
             if (checkbox.checked) {
                 if (!task.completedDates.includes(today)) {
                     task.completedDates.push(today);
@@ -711,7 +771,10 @@ function displayTasks() {
                 task.completedDates = task.completedDates.filter(date => date !== today);
             }
 
-            saveTasks();
+            const saved = saveTasks();
+            if (!saved) {
+                task.completedDates = prevCompleted;
+            }
             displayTasks();
         });
 
@@ -737,10 +800,12 @@ function displayTasks() {
 
             if (!task.completedDates.includes(selectedDate)) {
                 task.completedDates.push(selectedDate);
+                const saved = saveTasks();
+                if (!saved) {
+                    task.completedDates.pop();
+                }
+                displayTasks();
             }
-
-            saveTasks();
-            displayTasks();
         });
 
         const dateActions = createElement("div", "date-actions");
@@ -781,10 +846,16 @@ function displayTasks() {
             const confirmation = confirm(`Are you sure you want to delete "${task.name}"?`);
             if (!confirmation) return;
 
+            const previousTasks = [...tasks];
             tasks = tasks.filter(item => item.id !== task.id);
-            saveTasks();
-            displayTasks();
-            showStatus(`Task "${task.name}" deleted.`, "info", 3000);
+            const saved = saveTasks();
+            if (saved) {
+                displayTasks();
+                showStatus(`Task "${task.name}" deleted.`, "info", 3000);
+            } else {
+                tasks = previousTasks;
+                displayTasks();
+            }
         });
 
         taskDiv.append(
@@ -828,8 +899,13 @@ function addTask() {
         return;
     }
 
+    let newId = Date.now();
+    while (tasks.some(t => t.id === newId)) {
+        newId++;
+    }
+
     const newTask = {
-        id: Date.now(),
+        id: newId,
         name: taskName,
         startDate: getToday(),
         completedDates: []
@@ -842,6 +918,8 @@ function addTask() {
         displayTasks();
         taskInput.value = "";
         showStatus(`Task "${taskName}" added successfully.`, "success", 3000);
+    } else {
+        tasks.pop();
     }
 }
 
@@ -862,7 +940,7 @@ function exportBackup() {
             version: 1,
             exportDate: new Date().toISOString(),
             taskCount: tasks.length,
-            tasks: tasks
+            tasks: JSON.parse(JSON.stringify(tasks))
         };
 
         const jsonString = JSON.stringify(backupData, null, 2);
@@ -877,7 +955,7 @@ function exportBackup() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        showStatus(`Backup exported successfully (${tasks.length} task(s)).`, "success", 4000);
+        showStatus(`Backup exported successfully (${tasks.length} task(s)). Keep your backup file safe!`, "success", 4000);
     } catch (error) {
         console.error("Export backup error:", error);
         showStatus("Failed to export backup: " + (error.message || "Unknown error"), "error", 5000);
@@ -903,28 +981,25 @@ function handleImportFileSelect(event) {
                 return;
             }
 
-            let incomingTasks = null;
-
-            if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && Array.isArray(parsed.tasks)) {
-                incomingTasks = parsed.tasks;
-            } else if (Array.isArray(parsed)) {
-                incomingTasks = parsed;
-            } else {
-                showStatus("Import failed: Incompatible backup format. File must contain a 'tasks' list or array.", "error", 6000);
-                importFileInput.value = "";
-                return;
-            }
-
-            const validation = validateTasksArray(incomingTasks);
+            const validation = validateBackupDocument(parsed);
             if (!validation.isValid) {
                 showStatus(`Import rejected: ${validation.error} Existing tasks remain untouched.`, "error", 7000);
                 importFileInput.value = "";
                 return;
             }
 
-            const confirmMessage = tasks.length > 0
-                ? `Are you sure you want to import ${validation.sanitized.length} task(s)? This will replace your current ${tasks.length} task(s).`
-                : `Are you sure you want to import ${validation.sanitized.length} task(s)?`;
+            const incomingTasks = validation.tasks;
+
+            let confirmMessage = "";
+            if (incomingTasks.length === 0) {
+                confirmMessage = tasks.length > 0
+                    ? `The selected backup contains 0 tasks.\n\nImporting will clear your current ${tasks.length} task(s).\n\nDo you want to proceed with clearing all tasks?`
+                    : "The selected backup contains 0 tasks. Proceed with importing empty task list?";
+            } else if (tasks.length > 0) {
+                confirmMessage = `Importing will REPLACE your current ${tasks.length} task(s) with ${incomingTasks.length} task(s) from the backup file.\n\nAny existing tasks not in the backup file will be lost unless you have previously exported them.\n\nDo you want to proceed?`;
+            } else {
+                confirmMessage = `Import ${incomingTasks.length} task(s) into Daily Progress Tracker?`;
+            }
 
             const proceed = confirm(confirmMessage);
             if (!proceed) {
@@ -934,16 +1009,21 @@ function handleImportFileSelect(event) {
             }
 
             const previousTasks = [...tasks];
-            tasks = validation.sanitized;
-            isDataCorrupted = false;
-            corruptedRawData = null;
+            const previousIsDataCorrupted = isDataCorrupted;
+            const previousCorruptedRawData = corruptedRawData;
+
+            tasks = incomingTasks;
 
             const saved = saveTasks();
             if (saved) {
+                isDataCorrupted = false;
+                corruptedRawData = null;
                 displayTasks();
                 showStatus(`Successfully imported ${tasks.length} task(s)!`, "success", 5000);
             } else {
                 tasks = previousTasks;
+                isDataCorrupted = previousIsDataCorrupted;
+                corruptedRawData = previousCorruptedRawData;
                 displayTasks();
                 showStatus("Import aborted: Failed to write imported tasks to local storage. Original tasks retained.", "error", 7000);
             }
