@@ -21,7 +21,7 @@ let statusTimeoutId = null;
 // 2. STATUS / NOTIFICATION SYSTEM
 // ==========================================
 
-function showStatus(message, type = "info", duration = 4000, action = null) {
+function showStatus(message, type = "info", duration = 4000, actions = null) {
     if (!statusMessage) return;
 
     if (statusTimeoutId) {
@@ -37,14 +37,17 @@ function showStatus(message, type = "info", duration = 4000, action = null) {
 
     const actionsDiv = createElement("div", "status-actions");
 
-    if (action && typeof action.handler === "function") {
-        const actionBtn = createElement("button", "status-action-btn", action.label || "Action");
-        actionBtn.type = "button";
-        actionBtn.addEventListener("click", () => {
-            action.handler();
-        });
-        actionsDiv.appendChild(actionBtn);
-    }
+    const actionList = Array.isArray(actions) ? actions : (actions ? [actions] : []);
+    actionList.forEach(act => {
+        if (act && typeof act.handler === "function") {
+            const actionBtn = createElement("button", "status-action-btn", act.label || "Action");
+            actionBtn.type = "button";
+            actionBtn.addEventListener("click", () => {
+                act.handler();
+            });
+            actionsDiv.appendChild(actionBtn);
+        }
+    });
 
     const closeBtn = createElement("button", "status-close-btn", "×");
     closeBtn.type = "button";
@@ -231,10 +234,16 @@ function loadTasksFromStorage() {
             "Warning: Existing stored data appears corrupted. Your data has NOT been overwritten or deleted.",
             "warning",
             0,
-            {
-                label: "Download Raw Data",
-                handler: downloadCorruptedData
-            }
+            [
+                {
+                    label: "Download Raw Data",
+                    handler: downloadCorruptedData
+                },
+                {
+                    label: "Reset & Start Fresh",
+                    handler: resetCorruptedData
+                }
+            ]
         );
         return [];
     }
@@ -250,10 +259,16 @@ function loadTasksFromStorage() {
             `Warning: Stored data contains invalid records (${validation.error}). Original data has been preserved.`,
             "warning",
             0,
-            {
-                label: "Download Raw Data",
-                handler: downloadCorruptedData
-            }
+            [
+                {
+                    label: "Download Raw Data",
+                    handler: downloadCorruptedData
+                },
+                {
+                    label: "Reset & Start Fresh",
+                    handler: resetCorruptedData
+                }
+            ]
         );
         return [];
     }
@@ -286,14 +301,85 @@ function downloadCorruptedData() {
     }
 }
 
+function resetCorruptedData() {
+    if (!isDataCorrupted) return;
+
+    const confirmed = confirm(
+        "Are you sure you want to replace corrupted data and start fresh? We will attempt to archive your corrupted data before resetting. (We recommend downloading your raw data first)."
+    );
+    if (!confirmed) return;
+
+    let archivedKey = null;
+
+    if (corruptedRawData !== null) {
+        if (!isStorageAvailable()) {
+            showStatus(
+                "Reset cancelled: Local storage is unavailable. Cannot archive corrupted data, so original data was preserved.",
+                "error",
+                7000
+            );
+            return;
+        }
+
+        // Determine a safe archive key that does not overwrite any existing archive
+        let targetArchiveKey = "myTasks_corrupted_archive";
+        if (window.localStorage.getItem(targetArchiveKey) !== null) {
+            let index = 1;
+            while (window.localStorage.getItem(`${targetArchiveKey}_${index}`) !== null) {
+                index++;
+            }
+            targetArchiveKey = `${targetArchiveKey}_${index}`;
+        }
+
+        // 1. Attempt archival of corrupted data
+        try {
+            window.localStorage.setItem(targetArchiveKey, corruptedRawData);
+            archivedKey = targetArchiveKey;
+        } catch (archiveErr) {
+            console.error("Archival of corrupted data failed:", archiveErr);
+            showStatus(
+                `Reset cancelled: Failed to archive corrupted data (${archiveErr.message || "Storage quota or permission error"}). Original data was preserved.`,
+                "error",
+                7000
+            );
+            return; // ABORT: Do not proceed with reset
+        }
+    }
+
+    // 2. Attempt to write clean initial "[]" to STORAGE_KEY
+    try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+    } catch (resetWriteErr) {
+        console.error("Storage reset write failed:", resetWriteErr);
+        showStatus(
+            `Reset failed: Could not write clean data to storage (${resetWriteErr.message || "Storage error"}). Corrupted data is preserved${archivedKey ? ` and archived in '${archivedKey}'` : ""}.`,
+            "error",
+            7000
+        );
+        return; // ABORT: Do not clear in-memory corruption state if write fails
+    }
+
+    // 3. Only clear in-memory corruption flags and update tasks list after storage write succeeds
+    isDataCorrupted = false;
+    corruptedRawData = null;
+    tasks = [];
+    displayTasks();
+
+    const successMsg = archivedKey
+        ? `Storage has been reset. Corrupted data was safely archived to '${archivedKey}'. You can now add new tasks.`
+        : "Storage has been reset. You can now add new tasks.";
+
+    showStatus(successMsg, "success", 5000);
+}
+
 function saveTasks() {
     if (!isStorageAvailable()) {
         showStatus("Cannot save tasks: Browser storage is disabled or blocked.", "error", 5000);
         return false;
     }
 
-    if (isDataCorrupted && tasks.length === 0) {
-        console.warn("Skipping automatic saveTasks to protect preserved corrupted raw data.");
+    if (isDataCorrupted) {
+        console.warn("Storage write blocked: Preserving unreadable or corrupted raw data.");
         return false;
     }
 
@@ -558,13 +644,6 @@ function renderCalendar(task, calendarContainer, monthDate, streakInfo, taskDiv)
             }
 
             dayButton.addEventListener("click", toggleCompletion);
-
-            dayButton.addEventListener("keydown", event => {
-                if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    toggleCompletion();
-                }
-            });
         }
 
         grid.appendChild(dayButton);
@@ -733,6 +812,19 @@ function addTask() {
 
     if (taskName === "") {
         alert("Please enter a task!");
+        return;
+    }
+
+    if (isDataCorrupted) {
+        showStatus(
+            "Cannot add task: Stored data is corrupted and preserved. Please download your raw data, restore a backup, or reset corrupted data first.",
+            "error",
+            0,
+            [
+                { label: "Download Raw Data", handler: downloadCorruptedData },
+                { label: "Reset & Start Fresh", handler: resetCorruptedData }
+            ]
+        );
         return;
     }
 
