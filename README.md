@@ -5,6 +5,20 @@ A simple, mobile-friendly task tracker that helps you stay consistent and see yo
 **Live app:** https://bhanureddy31.github.io/Daily-Progress-Tracker/  
 **Source code:** https://github.com/bhanureddy31/Daily-Progress-Tracker
 
+## Application Screenshots
+
+### Main Dashboard
+![Main Dashboard](assets/screenshots/dashboard.png)
+*Desktop overview showing the application title, task creation interface, backup controls, and individual habit cards with one-tap completion checkboxes and streak counters.*
+
+### Interactive Task Calendar
+![Task Calendar](assets/screenshots/task-calendar.png)
+*Expanded task calendar view featuring month navigation, accessible native button controls, and green completion badges (`✓`) highlighting completed days alongside streak statistics.*
+
+### Mobile Responsive Interface
+![Mobile View](assets/screenshots/mobile-view.png)
+*Fully responsive mobile layout optimized for touch interaction, ensuring task cards, action buttons, and controls adapt seamlessly without horizontal scrolling.*
+
 ## Features
 
 - **Personal task tracking** – create and manage individual tasks; this is not a problem-solving or coding-challenge tracker.
