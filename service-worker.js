@@ -1,5 +1,6 @@
 // Service Worker for Daily Progress Tracker
-const CACHE_NAME = 'daily-progress-tracker-v1';
+const CACHE_PREFIX = 'daily-progress-tracker-';
+const CACHE_NAME = `${CACHE_PREFIX}v2`;
 
 // Relative assets list - works on localhost, root domains, and GitHub Pages subpaths
 const PRECACHE_ASSETS = [
@@ -27,15 +28,18 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// Activate: Clean up old caches and claim existing clients
+// Activate: Delete ONLY outdated caches belonging to this app (prefix-checked)
+// Never delete unrelated caches sharing the same origin (e.g. other GitHub Pages apps)
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
+                    if (cacheName.startsWith(CACHE_PREFIX) && cacheName !== CACHE_NAME) {
+                        console.log('Service Worker: Cleaning outdated app cache:', cacheName);
                         return caches.delete(cacheName);
                     }
+                    return Promise.resolve(false);
                 })
             );
         }).then(() => {

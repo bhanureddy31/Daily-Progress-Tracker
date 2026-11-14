@@ -36,7 +36,40 @@
 
         <section class="task-section">
 
-            <h2>My Daily Tasks</h2>
+            <div class="task-section-header">
+                <h2>My Daily Tasks</h2>
+
+                <div class="backup-controls">
+                    <button
+                        type="button"
+                        id="exportBackupBtn"
+                        class="backup-btn"
+                        title="Download a JSON backup of all tasks and progress"
+                    >
+                        Export Backup
+                    </button>
+
+                    <button
+                        type="button"
+                        id="importBackupBtn"
+                        class="backup-btn"
+                        title="Restore tasks from a JSON backup file"
+                    >
+                        Import Backup
+                    </button>
+
+                    <input
+                        type="file"
+                        id="importFileInput"
+                        accept=".json,application/json"
+                        style="display: none;"
+                        aria-label="Select JSON backup file to import"
+                    >
+                </div>
+            </div>
+
+            <!-- Status and Error Notifications -->
+            <div id="statusMessage" class="status-message" role="status" aria-live="polite" hidden></div>
 
             <div class="add-task">
                 <input
@@ -44,9 +77,10 @@
                     id="taskInput"
                     placeholder="Enter a new task..."
                     autocomplete="off"
+                    aria-label="New task name"
                 >
 
-                <button id="addTaskBtn">Add Task</button>
+                <button id="addTaskBtn" type="button">Add Task</button>
             </div>
 
             <div id="taskList">

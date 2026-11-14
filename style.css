@@ -70,11 +70,150 @@ main {
     width: 100%;
 }
 
-.task-section h2 {
+.task-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
     margin-bottom: 20px;
+}
+
+.task-section-header h2 {
     color: #29345c;
     font-size: clamp(18px, 4.5vw, 22px);
     font-weight: 700;
+    margin: 0;
+}
+
+/* ==============================
+   BACKUP CONTROLS (EXPORT/IMPORT)
+============================== */
+
+.backup-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.backup-btn {
+    min-height: 38px;
+    padding: 8px 14px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #29345c;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.backup-btn:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+}
+
+.backup-btn:active {
+    transform: scale(0.97);
+}
+
+/* ==============================
+   STATUS & ERROR NOTIFICATIONS
+============================== */
+
+.status-message {
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 1.45;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    word-break: break-word;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.status-message[hidden] {
+    display: none !important;
+}
+
+.status-message.success {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.status-message.error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.status-message.warning {
+    background: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.status-message.info {
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.status-content {
+    flex: 1;
+}
+
+.status-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.status-action-btn {
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid currentColor;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.status-action-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.status-close-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.7;
+    padding: 0 4px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-close-btn:hover {
+    opacity: 1;
 }
 
 /* ==============================
@@ -384,13 +523,31 @@ main {
     padding: 2px;
 }
 
-.calendar-day {
-    background: #f1f2f6;
+/* Native button styling for calendar day cells */
+button.calendar-day {
+    font-family: inherit;
+    border: none;
+    outline: none;
+    width: 100%;
+    cursor: pointer;
+    box-sizing: border-box;
+    line-height: inherit;
     color: #333;
+    background: #f1f2f6;
     user-select: none;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.1s ease, background 0.15s ease;
+    transition: transform 0.1s ease, background 0.15s ease, outline-color 0.15s ease;
+}
+
+button.calendar-day:focus-visible {
+    outline: 2px solid #5264d8;
+    outline-offset: 2px;
+    z-index: 2;
+}
+
+button.calendar-day:active:not(:disabled) {
+    transform: scale(0.92);
 }
 
 /* Completed dates */
@@ -410,7 +567,8 @@ main {
 
 /* Dates before starting date and future dates */
 
-.calendar-day.calendar-disabled {
+.calendar-day.calendar-disabled,
+button.calendar-day:disabled {
     opacity: 0.35;
     cursor: not-allowed !important;
 }
@@ -440,6 +598,32 @@ main {
     .task-section {
         padding: 18px 14px;
         border-radius: 14px;
+    }
+
+    .task-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .backup-controls {
+        width: 100%;
+    }
+
+    .backup-btn {
+        flex: 1 1 calc(50% - 4px);
+        min-height: 42px;
+    }
+
+    .status-message {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .status-actions {
+        width: 100%;
+        justify-content: flex-end;
     }
 
     .add-task {
@@ -499,6 +683,10 @@ main {
 
     #taskList .task-item {
         padding: 14px 10px;
+    }
+
+    .backup-btn {
+        flex: 1 1 100%;
     }
 
     .calendar-grid {
